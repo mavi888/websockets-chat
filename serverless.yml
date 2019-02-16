@@ -1,0 +1,56 @@
+service: websockets-chat 
+
+plugins:
+  - serverless-websockets-plugin
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - "dynamodb:PutItem"
+        - "dynamodb:GetItem"
+        - "dynamodb:DeleteItem"
+        - "dynamodb:Scan"
+      Resource:
+        - Fn::GetAtt: [ChatTable, Arn]
+    - Effect: Allow
+      Action:
+        - "execute-api:ManageConnections"
+      Resource:
+        - "arn:aws:execute-api:*:*:**/@connections/*"
+
+functions:
+  connectionHandler:
+    handler: handler.connectionHandler
+    events:
+      - websocket:
+          routeKey: $connect
+      - websocket:
+          routeKey: $disconnect
+  defaultHandler:
+    handler: handler.defaultHandler
+    events:
+      - websocket:
+          routeKey: $default
+  sendMessageHandler:
+    handler: handler.sendMessageHandler
+    events:
+      - websocket:
+          routeKey: sendMessage
+
+resources:
+  Resources:
+    ChatTable:
+      Type: "AWS::DynamoDB::Table"
+      Properties:
+        AttributeDefinitions:
+        - AttributeName: "connectionId"
+          AttributeType: "S"
+        KeySchema:
+        - AttributeName: "connectionId"
+          KeyType: "HASH"
+        BillingMode: PAY_PER_REQUEST
+        TableName: chatIdTable
