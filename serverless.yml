@@ -1,8 +1,5 @@
 service: websockets-chat 
 
-plugins:
-  - serverless-websockets-plugin
-
 provider:
   name: aws
   runtime: nodejs8.10
@@ -27,19 +24,19 @@ functions:
     handler: handler.connectionHandler
     events:
       - websocket:
-          routeKey: $connect
+          route: $connect
       - websocket:
-          routeKey: $disconnect
+          route: $disconnect
   defaultHandler:
     handler: handler.defaultHandler
     events:
       - websocket:
-          routeKey: $default
+          route: $default
   sendMessageHandler:
     handler: handler.sendMessageHandler
     events:
       - websocket:
-          routeKey: sendMessage
+          route: sendMessage
 
 resources:
   Resources:
